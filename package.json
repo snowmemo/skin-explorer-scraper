@@ -11,5 +11,8 @@
     "ioredis": "^4.28.2",
     "p-limit": "^4.0.0",
     "redis-json": "^6.0.2"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }

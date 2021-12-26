@@ -2,7 +2,8 @@
 
 Reads data from CommunityDragon and the League of Legends Wiki to populate a
 Redis cache. The cache is then read by the Next.js application during build and
-regeneration time. Intended to be run once every 10 minutes.
+regeneration time. Intended to be run once every 10 minutes. If there has been
+a change that took place, it will also trigger a rebuild on the actual site.
 
 ## Game Data
 

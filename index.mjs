@@ -8,7 +8,7 @@ const dataURL = (p) =>
 
 async function getLatestChampions() {
   const { data } = await axios.get(dataURL("/v1/champion-summary.json"));
-  console.log("[PBE] Loaded champions.");
+  console.log("[CDragon] Loaded champions.");
   return data
     .filter((d) => d.id !== -1)
     .sort((a, b) => (a.name > b.name ? 1 : -1))
@@ -17,7 +17,7 @@ async function getLatestChampions() {
 
 async function getLatestUniverses() {
   const { data } = await axios.get(dataURL("/v1/universes.json"));
-  console.log("[PBE] Loaded universes.");
+  console.log("[CDragon] Loaded universes.");
 
   return data
     .filter((d) => d.id !== 0)
@@ -26,7 +26,7 @@ async function getLatestUniverses() {
 
 async function getLatestSkinlines() {
   const { data } = await axios.get(dataURL("/v1/skinlines.json"));
-  console.log("[PBE] Loaded skinlines.");
+  console.log("[CDragon] Loaded skinlines.");
 
   return data
     .filter((d) => d.id !== 0)
@@ -35,7 +35,7 @@ async function getLatestSkinlines() {
 
 async function getLatestSkins() {
   const { data } = await axios.get(dataURL("/v1/skins.json"));
-  console.log("[PBE] Loaded skins.");
+  console.log("[CDragon] Loaded skins.");
 
   Object.keys(data).map((id) => {
     const skin = data[id];
@@ -65,7 +65,8 @@ async function getLatestPatchData() {
   ]);
 }
 
-async function main() {
+async function scrape() {
+  let shouldRebuild = false;
   const { lastUpdate, oldVersionString } = await cache.get("persistentVars", {
     lastUpdate: 0,
     oldVersionString: "",
@@ -79,7 +80,7 @@ async function main() {
     .data;
   if (metadata.version === oldVersionString) {
     console.log(
-      `[Game] Patch has not changed (${oldVersionString}). Skipping...`
+      `[CDragon] Patch has not changed (${oldVersionString}). Skipping...`
     );
   } else {
     // Patch changed!
@@ -89,18 +90,17 @@ async function main() {
       cache.set("skinlines", skinlines),
       cache.set("skins", skins),
       cache.set("universes", universes),
-      cache.set("persistentVars", {
-        lastUpdate: now,
-        oldVersionString: metadata.version,
-      }),
     ]);
-    console.log("[Game] Cache updated.");
+    console.log("[CDragon] Cache updated.");
+    shouldRebuild = true;
   }
 
-  if (now - lastUpdate < SKIN_SCRAPE_INTERVAL * 1000)
-    return console.log(
+  if (now - lastUpdate < SKIN_SCRAPE_INTERVAL * 1000) {
+    console.log(
       "[Skin Changes] Hasn't been 1 hour since last scrape. Exiting."
     );
+    return shouldRebuild;
+  }
 
   if (!champions) {
     [champions, skins] = await Promise.all([
@@ -110,8 +110,27 @@ async function main() {
   }
 
   const changes = await fetchSkinChanges(champions, skins);
-  cache.set("changes", changes);
+  await Promise.all([
+    cache.set("changes", changes),
+    cache.set("persistentVars", {
+      lastUpdate: now,
+      oldVersionString: metadata.version,
+    }),
+  ]);
   console.log("[Skin Changes] Cache updated.");
+  shouldRebuild = true;
+
+  return shouldRebuild;
+}
+
+async function main() {
+  const shouldRebuild = await scrape();
+  if (shouldRebuild) {
+    console.log("[Deploy] Triggering rebuild...");
+    await axios.get(process.env.DEPLOY_HOOK);
+  } else {
+    console.log("[Deploy] Rebuild unnecessary.");
+  }
 }
 
 main().then(() => cache.destroy());

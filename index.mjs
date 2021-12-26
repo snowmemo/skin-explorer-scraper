@@ -127,7 +127,8 @@ async function main() {
   const shouldRebuild = await scrape();
   if (shouldRebuild) {
     console.log("[Deploy] Triggering rebuild...");
-    await axios.get(process.env.DEPLOY_HOOK);
+    const { job } = (await axios.post(process.env.DEPLOY_HOOK)).data;
+    console.log(`Job ${job.id}, State: ${job.state}`);
   } else {
     console.log("[Deploy] Rebuild unnecessary.");
   }

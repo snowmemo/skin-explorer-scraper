@@ -1,10 +1,12 @@
 import axios from "axios";
 import { cache } from "./lib/cache.mjs";
-import { CDRAGON, SKIN_SCRAPE_INTERVAL } from "./constants.mjs";
+import { CDRAGON, SKIN_SCRAPE_INTERVAL, SUBSTITUTIONS } from "./constants.mjs";
 import { fetchSkinChanges } from "./lib/skin-changes.mjs";
 
 const dataURL = (p) =>
   `${CDRAGON}/pbe/plugins/rcp-be-lol-game-data/global/default${p}`;
+
+const substitute = (thing) => SUBSTITUTIONS[thing] ?? thing;
 
 async function getLatestChampions() {
   const { data } = await axios.get(dataURL("/v1/champion-summary.json"));
@@ -12,7 +14,7 @@ async function getLatestChampions() {
   return data
     .filter((d) => d.id !== -1)
     .sort((a, b) => (a.name > b.name ? 1 : -1))
-    .map((a) => ({ ...a, key: a.alias.toLowerCase() }));
+    .map((a) => ({ ...a, key: substitute(a.alias.toLowerCase()) }));
 }
 
 async function getLatestUniverses() {
@@ -126,6 +128,8 @@ async function scrape() {
 async function main() {
   const shouldRebuild = await scrape();
   if (shouldRebuild) {
+    if (!process.env.DEPLOY_HOOK)
+      return console.log("[Deploy] Need rebuild but no DEPLOY_HOOK provided.");
     console.log("[Deploy] Triggering rebuild...");
     const { job } = (await axios.post(process.env.DEPLOY_HOOK)).data;
     console.log(`Job ${job.id}, State: ${job.state}`);

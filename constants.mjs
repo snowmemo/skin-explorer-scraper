@@ -28,3 +28,7 @@ export const IGNORED_WARNINGS = [
 ];
 
 export const SKIN_SCRAPE_INTERVAL = 3600; // 1 hour
+
+export const SUBSTITUTIONS = {
+  monkeyking: "wukong",
+};

@@ -1,3 +1,4 @@
+import isEqual from "lodash/isEqual.js";
 import axios from "axios";
 import { cache } from "./lib/cache.mjs";
 import { CDRAGON, SKIN_SCRAPE_INTERVAL, SUBSTITUTIONS } from "./constants.mjs";
@@ -110,17 +111,21 @@ async function scrape() {
       getLatestSkins(),
     ]);
   }
-
+  const oldChanges = await cache.get("changes", {});
   const changes = await fetchSkinChanges(champions, skins);
-  await Promise.all([
-    cache.set("changes", changes),
-    cache.set("persistentVars", {
-      lastUpdate: now,
-      oldVersionString: metadata.version,
-    }),
-  ]);
-  console.log("[Skin Changes] Cache updated.");
-  shouldRebuild = true;
+  const haveNewChanges = !isEqual(changes, oldChanges);
+  shouldRebuild = shouldRebuild || haveNewChanges;
+
+  if (haveNewChanges) {
+    await cache.set("changes", changes);
+    console.log("[Skin Changes] Cache updated.");
+  } else {
+    console.log("[Skin Changes] No new changes, exiting.");
+  }
+  await cache.set("persistentVars", {
+    lastUpdate: now,
+    oldVersionString: metadata.version,
+  });
 
   return shouldRebuild;
 }

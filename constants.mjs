@@ -32,3 +32,7 @@ export const SKIN_SCRAPE_INTERVAL = 3600; // 1 hour
 export const SUBSTITUTIONS = {
   monkeyking: "wukong",
 };
+
+export const WIKI_SUBSTITUTIONS = {
+  "Nunu & Willump": "Nunu",
+};

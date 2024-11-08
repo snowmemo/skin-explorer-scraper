@@ -3,11 +3,10 @@ import axios from "axios";
 import { cache } from "./lib/cache.mjs";
 import { CDRAGON, SKIN_SCRAPE_INTERVAL, SUBSTITUTIONS } from "./constants.mjs";
 import { fetchSkinChanges } from "./lib/skin-changes.mjs";
+import { substitute } from "./lib/helpers.mjs";
 
 const dataURL = (p, patch = "pbe") =>
   `${CDRAGON}/${patch}/plugins/rcp-be-lol-game-data/global/default${p}`;
-
-const substitute = (thing) => SUBSTITUTIONS[thing] ?? thing;
 
 async function getLatestChampions(patch = "pbe") {
   const { data } = await axios.get(dataURL("/v1/champion-summary.json", patch));

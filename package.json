@@ -5,7 +5,7 @@
   "private": true,
   "dependencies": {
     "axios": "^0.24.0",
-    "axios-rate-limit": "^1.4.0",
+    "axios-retry": "^4.5.0",
     "cheerio": "^1.0.0-rc.10",
     "dotenv": "^10.0.0",
     "fuse.js": "^6.4.6",
@@ -23,6 +23,6 @@
     "tsx": "^4.19.2"
   },
   "scripts": {
-    "run": "tsx index.ts"
+    "start": "tsx index.ts"
   }
 }

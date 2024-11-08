@@ -1,10 +1,16 @@
 import isEqual from "lodash/isEqual.js";
 import axios from "axios";
+import axiosRetry from "axios-retry";
 import { cache } from "./lib/cache";
 import { CDRAGON, SKIN_SCRAPE_INTERVAL } from "./constants";
 import { fetchSkinChanges } from "./lib/skin-changes";
 import { substitute } from "./lib/helpers";
 import { Champion, Skinline, Skins, Universe } from "./types";
+
+axiosRetry(axios, {
+  retries: 4,
+  retryDelay: axiosRetry.exponentialDelay
+});
 
 const dataURL = (p: string, patch = "pbe") =>
   `${CDRAGON}/${patch}/plugins/rcp-be-lol-game-data/global/default${p}`;
@@ -97,7 +103,7 @@ async function scrape() {
   let universes: Universe[] | null = null;
 
   // Check to see if patch changed.
-  const metadata = (await axios.get(CDRAGON + "/pbe/content-metadata.json"))
+  const metadata: { version: String } = (await axios.get(CDRAGON + "/pbe/content-metadata.json"))
     .data;
   if (metadata.version === oldVersionString) {
     console.log(

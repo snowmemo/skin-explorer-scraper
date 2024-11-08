@@ -16,7 +16,7 @@ export const MIN_SUPPORTED_VERSION = [7, 1];
 export const REVALIDATE_INTERVAL = 60;
 
 /* Skin Changes Scraping */
-export const ALIASES = {
+export const ALIASES:Record<string, string> = {
   "Nunu Bot": "Nunu & Willump Bot",
 };
 

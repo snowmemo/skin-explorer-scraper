@@ -1,9 +1,9 @@
 import isEqual from "lodash/isEqual.js";
 import axios from "axios";
-import { cache } from "./lib/cache.mts";
-import { CDRAGON, SKIN_SCRAPE_INTERVAL } from "./constants.mts";
-import { fetchSkinChanges } from "./lib/skin-changes.mts";
-import { substitute } from "./lib/helpers.mts";
+import { cache } from "./lib/cache";
+import { CDRAGON, SKIN_SCRAPE_INTERVAL } from "./constants";
+import { fetchSkinChanges } from "./lib/skin-changes";
+import { substitute } from "./lib/helpers";
 import { Champion, Skinline, Skins, Universe } from "./types";
 
 const dataURL = (p: string, patch = "pbe") =>

@@ -1,4 +1,4 @@
-import { SUBSTITUTIONS } from "../constants.mts";
+import { SUBSTITUTIONS } from "../constants";
 
 export function parsePatch(s: string): number[] {
   return s.split(".").map((s) => parseInt(s, 10));

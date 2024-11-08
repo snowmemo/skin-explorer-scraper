@@ -2,14 +2,14 @@ import pLimit from "p-limit";
 import Fuse from "fuse.js";
 import cheerio from "cheerio";
 import axios from "axios";
-import { splitId, parsePatch, comparePatches, substitute } from "./helpers.mts";
+import { splitId, parsePatch, comparePatches, substitute } from "./helpers";
 import {
   CDRAGON,
   ALIASES,
   IGNORED_WARNINGS,
   MIN_SUPPORTED_VERSION,
   WIKI_SUBSTITUTIONS,
-} from "../constants.mts";
+} from "../constants.js";
 import { CDragonJson, Champion, Skinline, Skins, Universe } from "../types";
 
 const limit = pLimit(10);
@@ -49,7 +49,7 @@ export async function fetchSkinChanges(champions: Champion[], skins: Skins) {
  * https://wiki.leagueoflegends.com/en-us/Ambessa/Patch_history
  */
 async function getSkinArtChanges(champion: Champion, skins: Skins, patches: number[][]) {
-  const changes = {};
+  const changes: { [key: number]: Set<string> } = {};
   const champSkins = new Fuse(
     Object.values(skins).filter((skin) => splitId(skin.id)[0] === champion.id),
     {
@@ -129,7 +129,7 @@ async function getSkinArtChanges(champion: Champion, skins: Skins, patches: numb
   return Object.keys(changes).reduce(
     (obj, key) => ({
       ...obj,
-      [key]: [...changes[key]].sort(
+      [key]: [...changes[Number(key)]].sort(
         (a, b) => -comparePatches(parsePatch(a), parsePatch(b))
       ),
     }),

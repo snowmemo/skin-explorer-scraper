@@ -4,10 +4,4 @@ import { Skinline } from "./skinline";
 import { Universe } from "./universe";
 import { CDragonJson } from "./cdragonjson";
 
-export type {
-    Champion,
-    Skins,
-    Skinline,
-    Universe,
-    CDragonJson
-}
+export type { Champion, Skins, Skinline, Universe, CDragonJson };

@@ -10,7 +10,7 @@ import { exit } from "process";
 
 axiosRetry(axios, {
   retries: 4,
-  retryDelay: axiosRetry.exponentialDelay
+  retryDelay: axiosRetry.exponentialDelay,
 });
 
 const cache = new Cache();
@@ -19,7 +19,9 @@ const dataURL = (p: string, patch = "pbe") =>
   `${CDRAGON}/${patch}/plugins/rcp-be-lol-game-data/global/default${p}`;
 
 async function getLatestChampions(patch = "pbe"): Promise<Champion[]> {
-  const data: Champion[] = (await axios.get(dataURL("/v1/champion-summary.json", patch))).data;
+  const data: Champion[] = (
+    await axios.get(dataURL("/v1/champion-summary.json", patch))
+  ).data;
   console.log(`[CDragon] [${patch}] Loaded champions.`);
   return data
     .filter((d) => d.id !== -1)
@@ -28,7 +30,9 @@ async function getLatestChampions(patch = "pbe"): Promise<Champion[]> {
 }
 
 async function getLatestUniverses(patch = "pbe"): Promise<Universe[]> {
-  const data: Universe[] = (await axios.get(dataURL("/v1/universes.json", patch))).data;
+  const data: Universe[] = (
+    await axios.get(dataURL("/v1/universes.json", patch))
+  ).data;
   console.log(`[CDragon] [${patch}] Loaded universes.`);
 
   return data
@@ -37,7 +41,9 @@ async function getLatestUniverses(patch = "pbe"): Promise<Universe[]> {
 }
 
 async function getLatestSkinlines(patch = "pbe"): Promise<Skinline[]> {
-  const data: Skinline[] = (await axios.get(dataURL("/v1/skinlines.json", patch))).data;
+  const data: Skinline[] = (
+    await axios.get(dataURL("/v1/skinlines.json", patch))
+  ).data;
   console.log(`[CDragon] [${patch}] Loaded skinlines.`);
 
   return data
@@ -68,7 +74,9 @@ async function getLatestSkins(patch = "pbe"): Promise<Skins> {
   return data;
 }
 
-async function getLatestPatchData(patch = "pbe"): Promise<[Champion[], Skinline[], Skins, Universe[]]> {
+async function getLatestPatchData(
+  patch = "pbe",
+): Promise<[Champion[], Skinline[], Skins, Universe[]]> {
   return await Promise.all([
     getLatestChampions(patch),
     getLatestSkinlines(patch),
@@ -77,7 +85,12 @@ async function getLatestPatchData(patch = "pbe"): Promise<[Champion[], Skinline[
   ]);
 }
 
-async function getAdded(champions: Champion[], skinlines: Skinline[], skins: Skins, universes: Universe[]) {
+async function getAdded(
+  champions: Champion[],
+  skinlines: Skinline[],
+  skins: Skins,
+  universes: Universe[],
+) {
   const [oldC, oldSl, oldS, oldU] = await getLatestPatchData("latest");
   const oldSkinIds = new Set(Object.keys(oldS)),
     oldChampionIds = new Set(oldC.map((c) => c.id)),
@@ -106,11 +119,12 @@ async function scrape() {
   let universes: Universe[] | null = null;
 
   // Check to see if patch changed.
-  const metadata: { version: String } = (await axios.get(CDRAGON + "/pbe/content-metadata.json"))
-    .data;
+  const metadata: { version: String } = (
+    await axios.get(CDRAGON + "/pbe/content-metadata.json")
+  ).data;
   if (metadata.version === oldVersionString) {
     console.log(
-      `[CDragon] Patch has not changed (${oldVersionString}). Skipping...`
+      `[CDragon] Patch has not changed (${oldVersionString}). Skipping...`,
     );
   } else {
     // Patch changed!
@@ -130,7 +144,7 @@ async function scrape() {
 
   if (now - lastUpdate < SKIN_SCRAPE_INTERVAL * 1000) {
     console.log(
-      "[Skin Changes] Hasn't been 1 hour since last scrape. Exiting."
+      "[Skin Changes] Hasn't been 1 hour since last scrape. Exiting.",
     );
     return shouldRebuild;
   }

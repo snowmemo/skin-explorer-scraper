@@ -1,5 +1,5 @@
-import { FileCache } from './file-cache';
-import { RedisCache } from './redis-cache';
+import { FileCache } from "./file-cache";
+import { RedisCache } from "./redis-cache";
 
 export interface Cache {
   get(key: string, initial?: any): Promise<any>;
@@ -8,7 +8,4 @@ export interface Cache {
   destroy(): void;
 }
 
-export {
-  FileCache,
-  RedisCache,
-}
+export { FileCache, RedisCache };

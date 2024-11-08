@@ -20,7 +20,7 @@ export async function fetchSkinChanges(champions: Champion[], skins: Skins) {
   let data: CDragonJson[] = (await axios.get(`${CDRAGON}/json`)).data;
   const patches = data
     .filter(
-      (entry) => entry.type === "directory" && entry.name.match(PATCH_REGEX)
+      (entry) => entry.type === "directory" && entry.name.match(PATCH_REGEX),
     )
     .map((e) => parsePatch(e.name))
     .sort((a, b) => -comparePatches(a, b));
@@ -30,13 +30,15 @@ export async function fetchSkinChanges(champions: Champion[], skins: Skins) {
   await Promise.all(
     champions.map((c) =>
       limit(async () => {
-        const wiki_c = Object.assign({}, c, { name: substitute(c.name, WIKI_SUBSTITUTIONS) });
+        const wiki_c = Object.assign({}, c, {
+          name: substitute(c.name, WIKI_SUBSTITUTIONS),
+        });
         Object.assign(changes, await getSkinArtChanges(wiki_c, skins, patches));
         console.log(
-          `[Skin Changes] Completed ${wiki_c.name}. (${++i}/${champions.length})`
+          `[Skin Changes] Completed ${wiki_c.name}. (${++i}/${champions.length})`,
         );
-      })
-    )
+      }),
+    ),
   );
   console.log("[Skin Changes] Update complete.");
   return changes;
@@ -48,18 +50,22 @@ export async function fetchSkinChanges(champions: Champion[], skins: Skins) {
  *
  * https://wiki.leagueoflegends.com/en-us/Ambessa/Patch_history
  */
-async function getSkinArtChanges(champion: Champion, skins: Skins, patches: number[][]) {
+async function getSkinArtChanges(
+  champion: Champion,
+  skins: Skins,
+  patches: number[][],
+) {
   const changes: { [key: number]: Set<string> } = {};
   const champSkins = new Fuse(
     Object.values(skins).filter((skin) => splitId(skin.id)[0] === champion.id),
     {
       keys: ["name"],
       threshold: 0.1,
-    }
+    },
   );
 
   const response = await axios.get(
-    `https://wiki.leagueoflegends.com/en-us/${champion.name}/Patch_history?action=render`
+    `https://wiki.leagueoflegends.com/en-us/${champion.name}/Patch_history?action=render`,
   );
 
   const $ = cheerio.load(response.data);
@@ -111,7 +117,7 @@ async function getSkinArtChanges(champion: Champion, skins: Skins, patches: numb
               if (!matches.length) {
                 if (!IGNORED_WARNINGS.includes(name)) {
                   console.error(
-                    `Couldn't find a match for ${name} (${champion.name})`
+                    `Couldn't find a match for ${name} (${champion.name})`,
                   );
                 }
                 return;
@@ -130,9 +136,9 @@ async function getSkinArtChanges(champion: Champion, skins: Skins, patches: numb
     (obj, key) => ({
       ...obj,
       [key]: [...changes[Number(key)]].sort(
-        (a, b) => -comparePatches(parsePatch(a), parsePatch(b))
+        (a, b) => -comparePatches(parsePatch(a), parsePatch(b)),
       ),
     }),
-    {}
+    {},
   );
 }

@@ -1,6 +1,6 @@
 import "dotenv/config";
 import Redis from "ioredis";
-import { Cache } from './cache';
+import { Cache } from "./cache";
 
 function chunkString(str: string, len: number): string[] {
   const size = Math.ceil(str.length / len);
@@ -24,7 +24,7 @@ export class RedisCache implements Cache {
     this.redis = new Redis(process.env.REDIS_URL);
   }
 
-  async get(key: Redis.KeyType, initial:any|null = null): Promise<any> {
+  async get(key: Redis.KeyType, initial: any | null = null): Promise<any> {
     let str = await this.redis.getrange(key, 0, CHUNK_SIZE - 1);
     if (!str) {
       return initial;
@@ -42,7 +42,7 @@ export class RedisCache implements Cache {
             (await this.redis.getrange(
               key,
               CHUNK_SIZE * i,
-              CHUNK_SIZE * (i + 1) - 1
+              CHUNK_SIZE * (i + 1) - 1,
             )) || "";
           i++;
         } else {
@@ -63,12 +63,12 @@ export class RedisCache implements Cache {
     }
   }
 
-  async mset(values: { [x: string]: any; }) {
+  async mset(values: { [x: string]: any }) {
     await this.redis.mset(
       Object.keys(values).reduce(
         (obj, key) => ({ ...obj, [key]: JSON.stringify(values[key]) }),
-        {}
-      )
+        {},
+      ),
     );
   }
 
@@ -78,4 +78,3 @@ export class RedisCache implements Cache {
 }
 
 export const cache = new RedisCache();
-

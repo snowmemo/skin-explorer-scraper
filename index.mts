@@ -1,15 +1,16 @@
 import isEqual from "lodash/isEqual.js";
 import axios from "axios";
-import { cache } from "./lib/cache.mjs";
-import { CDRAGON, SKIN_SCRAPE_INTERVAL, SUBSTITUTIONS } from "./constants.mjs";
-import { fetchSkinChanges } from "./lib/skin-changes.mjs";
-import { substitute } from "./lib/helpers.mjs";
+import { cache } from "./lib/cache.mts";
+import { CDRAGON, SKIN_SCRAPE_INTERVAL } from "./constants.mts";
+import { fetchSkinChanges } from "./lib/skin-changes.mts";
+import { substitute } from "./lib/helpers.mts";
+import { Champion, Skinline, Skins, Universe } from "./types";
 
-const dataURL = (p, patch = "pbe") =>
+const dataURL = (p: string, patch = "pbe") =>
   `${CDRAGON}/${patch}/plugins/rcp-be-lol-game-data/global/default${p}`;
 
-async function getLatestChampions(patch = "pbe") {
-  const { data } = await axios.get(dataURL("/v1/champion-summary.json", patch));
+async function getLatestChampions(patch = "pbe"): Promise<Champion[]> {
+  const data: Champion[] = (await axios.get(dataURL("/v1/champion-summary.json", patch))).data;
   console.log(`[CDragon] [${patch}] Loaded champions.`);
   return data
     .filter((d) => d.id !== -1)
@@ -17,8 +18,8 @@ async function getLatestChampions(patch = "pbe") {
     .map((a) => ({ ...a, key: substitute(a.alias.toLowerCase()) }));
 }
 
-async function getLatestUniverses(patch = "pbe") {
-  const { data } = await axios.get(dataURL("/v1/universes.json", patch));
+async function getLatestUniverses(patch = "pbe"): Promise<Universe[]> {
+  const data: Universe[] = (await axios.get(dataURL("/v1/universes.json", patch))).data;
   console.log(`[CDragon] [${patch}] Loaded universes.`);
 
   return data
@@ -26,8 +27,8 @@ async function getLatestUniverses(patch = "pbe") {
     .sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
-async function getLatestSkinlines(patch = "pbe") {
-  const { data } = await axios.get(dataURL("/v1/skinlines.json", patch));
+async function getLatestSkinlines(patch = "pbe"): Promise<Skinline[]> {
+  const data: Skinline[] = (await axios.get(dataURL("/v1/skinlines.json", patch))).data;
   console.log(`[CDragon] [${patch}] Loaded skinlines.`);
 
   return data
@@ -35,8 +36,8 @@ async function getLatestSkinlines(patch = "pbe") {
     .sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
-async function getLatestSkins(patch = "pbe") {
-  const { data } = await axios.get(dataURL("/v1/skins.json", patch));
+async function getLatestSkins(patch = "pbe"): Promise<Skins> {
+  const data: Skins = (await axios.get(dataURL("/v1/skins.json", patch))).data;
   console.log(`[CDragon] [${patch}] Loaded skins.`);
 
   Object.keys(data).map((id) => {
@@ -58,7 +59,7 @@ async function getLatestSkins(patch = "pbe") {
   return data;
 }
 
-async function getLatestPatchData(patch = "pbe") {
+async function getLatestPatchData(patch = "pbe"): Promise<[Champion[], Skinline[], Skins, Universe[]]> {
   return await Promise.all([
     getLatestChampions(patch),
     getLatestSkinlines(patch),
@@ -67,7 +68,7 @@ async function getLatestPatchData(patch = "pbe") {
   ]);
 }
 
-async function getAdded(champions, skinlines, skins, universes) {
+async function getAdded(champions: Champion[], skinlines: Skinline[], skins: Skins, universes: Universe[]) {
   const [oldC, oldSl, oldS, oldU] = await getLatestPatchData("latest");
   const oldSkinIds = new Set(Object.keys(oldS)),
     oldChampionIds = new Set(oldC.map((c) => c.id)),
@@ -90,7 +91,10 @@ async function scrape() {
   });
   const now = Date.now();
 
-  let champions, skinlines, skins, universes;
+  let champions: Champion[] | null = null;
+  let skinlines: Skinline[] | null = null;
+  let skins: Skins | null = null;
+  let universes: Universe[] | null = null;
 
   // Check to see if patch changed.
   const metadata = (await axios.get(CDRAGON + "/pbe/content-metadata.json"))
@@ -122,7 +126,7 @@ async function scrape() {
     return shouldRebuild;
   }
 
-  if (!champions) {
+  if (!champions || !skins) {
     [champions, skins] = await Promise.all([
       getLatestChampions(),
       getLatestSkins(),

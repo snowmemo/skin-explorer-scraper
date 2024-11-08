@@ -29,10 +29,10 @@ export const IGNORED_WARNINGS = [
 
 export const SKIN_SCRAPE_INTERVAL = 3600; // 1 hour
 
-export const SUBSTITUTIONS = {
-  monkeyking: "wukong",
+export const SUBSTITUTIONS:Record<string, string> = {
+  "monkeyking": "wukong",
 };
 
-export const WIKI_SUBSTITUTIONS = {
+export const WIKI_SUBSTITUTIONS:Record<string, string> = {
   "Nunu & Willump": "Nunu",
 };

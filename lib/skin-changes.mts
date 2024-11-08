@@ -2,21 +2,23 @@ import pLimit from "p-limit";
 import Fuse from "fuse.js";
 import cheerio from "cheerio";
 import axios from "axios";
-import { splitId, parsePatch, comparePatches, substitute } from "./helpers.mjs";
+import { splitId, parsePatch, comparePatches, substitute } from "./helpers.mts";
 import {
   CDRAGON,
   ALIASES,
   IGNORED_WARNINGS,
   MIN_SUPPORTED_VERSION,
   WIKI_SUBSTITUTIONS,
-} from "../constants.mjs";
+} from "../constants.mts";
+import { CDragonJson, Champion, Skinline, Skins, Universe } from "../types";
 
 const limit = pLimit(10);
 const PATCH_REGEX = /^\d+\.\d+$/;
 
-export async function fetchSkinChanges(champions, skins) {
+export async function fetchSkinChanges(champions: Champion[], skins: Skins) {
   console.log(`[Skin Changes] Retrieving patch list...`);
-  const patches = (await axios.get(`${CDRAGON}/json`)).data
+  let data: CDragonJson[] = (await axios.get(`${CDRAGON}/json`)).data;
+  const patches = data
     .filter(
       (entry) => entry.type === "directory" && entry.name.match(PATCH_REGEX)
     )
@@ -46,7 +48,7 @@ export async function fetchSkinChanges(champions, skins) {
  *
  * https://wiki.leagueoflegends.com/en-us/Ambessa/Patch_history
  */
-async function getSkinArtChanges(champion, skins, patches) {
+async function getSkinArtChanges(champion: Champion, skins: Skins, patches: number[][]) {
   const changes = {};
   const champSkins = new Fuse(
     Object.values(skins).filter((skin) => splitId(skin.id)[0] === champion.id),
@@ -56,23 +58,20 @@ async function getSkinArtChanges(champion, skins, patches) {
     }
   );
 
-  const $ = cheerio.load(
-    (
-      await axios.get(
-        `https://wiki.leagueoflegends.com/en-us/${champion.name}/Patch_history?action=render`
-      )
-    ).data,
-    false
+  const response = await axios.get(
+    `https://wiki.leagueoflegends.com/en-us/${champion.name}/Patch_history?action=render`
   );
+
+  const $ = cheerio.load(response.data);
 
   $("dl dt a")
     .toArray()
     .filter((el) => {
       const t = $(el).attr("title");
-      if (!t.startsWith("V")) return false;
+      if (!t?.startsWith("V")) return false;
 
       const split = t.slice(1).split(".");
-      if (!split.length === 2) return false;
+      if (split.length != 2) return false;
 
       const patch = split.map((e) => parseInt(e, 10));
       if (comparePatches(patch, MIN_SUPPORTED_VERSION) <= 0) return false;
@@ -85,7 +84,10 @@ async function getSkinArtChanges(champion, skins, patches) {
         subset = c.find(':contains(" art")');
       if (!subset.length) return;
 
-      const patch = parsePatch(t.find("a").attr("title").slice(1));
+      const title = t.find("a").attr("title");
+      if (!title) return;
+
+      const patch = parsePatch(title.slice(1));
       const prevPatch =
         patches[
           patches.findIndex((p) => comparePatches(p, patch) === 0) + 1

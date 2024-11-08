@@ -1,16 +1,19 @@
 import isEqual from "lodash/isEqual.js";
 import axios from "axios";
 import axiosRetry from "axios-retry";
-import { cache } from "./lib/cache";
+import { FileCache as Cache } from "./lib/cache";
 import { CDRAGON, SKIN_SCRAPE_INTERVAL } from "./constants";
 import { fetchSkinChanges } from "./lib/skin-changes";
 import { substitute } from "./lib/helpers";
 import { Champion, Skinline, Skins, Universe } from "./types";
+import { exit } from "process";
 
 axiosRetry(axios, {
   retries: 4,
   retryDelay: axiosRetry.exponentialDelay
 });
+
+const cache = new Cache();
 
 const dataURL = (p: string, patch = "pbe") =>
   `${CDRAGON}/${patch}/plugins/rcp-be-lol-game-data/global/default${p}`;
@@ -170,4 +173,8 @@ async function main() {
   }
 }
 
-main().then(() => cache.destroy());
+main().then(() => {
+  cache.destroy();
+  console.log("[CDragon] Finished.");
+  exit(0);
+});
